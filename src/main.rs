@@ -1,21 +1,23 @@
 use std::process::Command;
-
+use std::fs::{self};
 use inquire::{error::InquireError, Select};
 
 
 
 fn main() {
-    let raw_output = Command::new("/bin/ls")
-                            .arg("-1")
-                            .arg("-A")
-                            .arg("/etc/lemurs/wayland/")
-                            .output()
-                            .expect("ls command failed to start");
+    let dir = "/etc/dm-chooser/";
+    let mut string_options = Vec::new();
+    let mut options = Vec::<&str>::new();
 
-    let _output = String::from_utf8(raw_output.stdout).unwrap();
+    let read_result = fs::read_dir(dir).unwrap();
+    
+    for entry in read_result {
+        string_options.push(entry.unwrap().path().display().to_string());
+    }
 
-    let options: Vec<&str> = vec!["Hyprland", "dwl",];
-
+    for i in 0..string_options.len() {
+        options.push(string_options[i].as_str())
+    }
 
     let ans: Result<&str, InquireError> = Select::new("Hello yosyo, welcome back ! On which Wayland Compositor would you like to go ? ", options).prompt();
 
@@ -28,8 +30,7 @@ fn main() {
     };
 
     if worked {
-        println!("{choosed_wm}");
-        Command::new(choosed_wm)
+        Command::new(&choosed_wm)
                 .spawn()
                 .expect("WM command failed to start");
     };
