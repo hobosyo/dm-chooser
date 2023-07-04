@@ -32,5 +32,5 @@ fn main() {
         Command::new(choosed_wm)
                 .spawn()
                 .expect("WM command failed to start");
-    };clear
+    };
 }
