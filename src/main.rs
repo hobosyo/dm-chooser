@@ -1,37 +1,28 @@
 use std::process::Command;
+use anyhow::Context;
 use std::fs::{self};
-use inquire::{error::InquireError, Select};
+use inquire::Select;
 
+const DIRECTORY: &str = "/etc/dm-chooser";
 
-
-fn main() {
-    let dir = "/etc/dm-chooser/";
-    let mut string_options = Vec::new();
-    let mut options = Vec::<&str>::new();
-
-    let read_result = fs::read_dir(dir).unwrap();
+fn main() -> anyhow::Result<()> {
+    loop {
+        let options = fs::read_dir(DIRECTORY)?
+                        .map(|res| res.map(|e| e.path().display().to_string()))
+                        .collect::<Result<Vec<_>, _>>()?;
     
-    for entry in read_result {
-        string_options.push(entry.unwrap().path().display().to_string());
-    }
+        let choice = Select::new(
+            "Hello yosyo, welcome back ! On which Wayland Compositor would you like to go ? ",
+            options,
+            )
+            .prompt()?;
 
-    for i in 0..string_options.len() {
-        options.push(string_options[i].as_str())
-    }
-
-    let ans: Result<&str, InquireError> = Select::new("Hello yosyo, welcome back ! On which Wayland Compositor would you like to go ? ", options).prompt();
-
-    let mut worked = true;
-    let mut choosed_wm = "";
-
-    match ans {
-         Ok(choice) => choosed_wm = choice,
-         Err(_) => worked = false,
-    };
-
-    if worked {
-        Command::new(&choosed_wm)
+        let mut wm = Command::new(choice)
                 .spawn()
-                .expect("WM command failed to start");
-    };
+                .context("WM command failed to start")?;
+
+        let _result = wm.wait().unwrap();
+
+        return Ok(());
+    }
 }

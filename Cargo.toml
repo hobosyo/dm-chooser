@@ -8,3 +8,4 @@ edition = "2021"
 [dependencies]
 inquire = "0.6.2"
 run_script = "*"
+anyhow = "1.0"
